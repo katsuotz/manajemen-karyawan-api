@@ -11,7 +11,9 @@ router.use(authenticateToken);
 // GET /api/employees - Get all employees (authenticated users)
 router.get('/', [
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100')
+    query('limit').optional().isInt({ min: 1, max: 10000 }).withMessage('Limit must be between 1 and 10000'),
+    query('search').optional().isString().withMessage('Search must be a string'),
+    query('sort').optional().matches(/^[a-zA-Z_]+:(asc|desc)$/).withMessage('Sort must be in format "field:direction" (e.g., "name:asc")')
 ], employeeController.getAllEmployees);
 
 // GET /api/employees/:id - Get employee by ID (authenticated users)
