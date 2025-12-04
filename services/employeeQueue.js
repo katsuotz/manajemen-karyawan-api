@@ -1,6 +1,7 @@
 const Queue = require('bull');
 const { Employee } = require('../models');
 const { v4: uuidv4 } = require('uuid');
+const notificationController = require('../controllers/notificationController');
 
 // Create employee creation queue using Bull
 const employeeQueue = new Queue('employee creation', {
@@ -82,6 +83,24 @@ const processEmployeeCreation = async (jobData) => {
             // Don't fail the job if notification fails
         }
 
+        // Create database notification
+        try {
+            await notificationController.createNotification(userId, {
+                title: 'Employee Created Successfully',
+                message: `Employee "${employee.name}" has been created successfully.`,
+                type: 'employee_created',
+                jobId,
+                metadata: {
+                    employeeId: employee.id,
+                    employeeName: employee.name,
+                    position: employee.position
+                }
+            });
+        } catch (notificationError) {
+            console.error('Failed to create database notification:', notificationError);
+            // Don't fail the job if notification fails
+        }
+
         return { success: true, employee };
     } catch (error) {
         console.error('Employee creation error:', error);
@@ -98,6 +117,23 @@ const processEmployeeCreation = async (jobData) => {
             }));
         } catch (publishError) {
             console.error('Failed to publish error notification:', publishError);
+            // Don't fail the job if notification fails
+        }
+
+        // Create database notification for error
+        try {
+            await notificationController.createNotification(jobData.userId, {
+                title: 'Employee Creation Failed',
+                message: `Failed to create employee: ${error.message}`,
+                type: 'employee_failed',
+                jobId: jobData.jobId,
+                metadata: {
+                    error: error.message,
+                    employeeData: jobData.employeeData
+                }
+            });
+        } catch (notificationError) {
+            console.error('Failed to create database notification:', notificationError);
             // Don't fail the job if notification fails
         }
         
