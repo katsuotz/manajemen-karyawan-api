@@ -85,7 +85,7 @@ const processEmployeeCreation = async (jobData) => {
 
         // Create database notification
         try {
-            await notificationController.createNotification(userId, {
+            await notificationController.createNotification({
                 title: 'Employee Created Successfully',
                 message: `Employee "${employee.name}" has been created successfully.`,
                 type: 'employee_created',
@@ -122,7 +122,7 @@ const processEmployeeCreation = async (jobData) => {
 
         // Create database notification for error
         try {
-            await notificationController.createNotification(jobData.userId, {
+            await notificationController.createNotification({
                 title: 'Employee Creation Failed',
                 message: `Failed to create employee: ${error.message}`,
                 type: 'employee_failed',

@@ -1,6 +1,8 @@
 const { Notification } = require('../models');
 const { success, error } = require('../utils/responseHelper');
 const { addConnection, getConnectionCount, getTotalConnections } = require('../services/sseService');
+const jwt = require('jsonwebtoken');
+const { User } = require('../models');
 
 const notificationController = {
     // Get all notifications
@@ -20,7 +22,7 @@ const notificationController = {
                 where: whereClause,
                 order: [['created_at', 'DESC']],
                 limit: parseInt(limit),
-                offset,
+                offset
             });
             
             return success(res, {
@@ -38,6 +40,22 @@ const notificationController = {
         } catch (err) {
             console.error('Get notifications error:', err);
             return error(res, 'Failed to fetch notifications', 500);
+        }
+    },
+
+    // Get unread notifications count
+    getUnreadCount: async (req, res) => {
+        try {
+            const unreadCount = await Notification.count({
+                where: { read: false }
+            });
+            
+            return success(res, {
+                unreadCount
+            });
+        } catch (err) {
+            console.error('Get unread count error:', err);
+            return error(res, 'Failed to fetch unread count', 500);
         }
     },
     
@@ -79,7 +97,27 @@ const notificationController = {
     // SSE subscription (existing functionality)
     subscribe: async (req, res) => {
         try {
-            const userId = req.user.id;
+            let userId;
+            
+            // Handle token authentication via query parameter for SSE connections
+            if (req.query.token) {
+                try {
+                    const decoded = jwt.verify(req.query.token, process.env.JWT_SECRET);
+                    const user = await User.findByPk(decoded.id);
+                    if (!user) {
+                        return res.status(401).json({ error: 'User not found' });
+                    }
+                    userId = user.id;
+                } catch (jwtError) {
+                    console.error('JWT verification error:', jwtError);
+                    return res.status(401).json({ error: 'Invalid token' });
+                }
+            } else if (req.user) {
+                // Fallback to regular authentication if available
+                userId = req.user.id;
+            } else {
+                return res.status(401).json({ error: 'Authentication required' });
+            }
             
             // Set SSE headers
             res.writeHead(200, {
