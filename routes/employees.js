@@ -24,16 +24,16 @@ router.post('/', [
     requireRole(['admin']),
     body('name').notEmpty().withMessage('Name is required').isLength({ max: 100 }).withMessage('Name maximum length is 100 characters'),
     body('age').notEmpty().withMessage('Age is required').isInt().withMessage('Age must be a number'),
-    body('position').notEmpty().withMessage('Position is required').isLength({ min: 2, max: 50 }).withMessage('Position maximum length is 50 characters'),
+    body('position').notEmpty().withMessage('Position is required').isLength({ max: 50 }).withMessage('Position maximum length is 50 characters'),
     body('salary').notEmpty().withMessage('Salary is required').isFloat({ min: 0 }).withMessage('Salary must be a positive number')
 ], employeeController.createEmployee);
 
 // PUT /api/employees/:id - Update employee (admin only)
 router.put('/:id', [
     requireRole(['admin']),
-    body('name').optional().isLength({ min: 2, max: 100 }).withMessage('Name maximum length is 100 characters'),
+    body('name').optional().isLength({ max: 100 }).withMessage('Name maximum length is 100 characters'),
     body('age').optional().isInt().withMessage('Age must be a number'),
-    body('position').optional().isLength({ min: 2, max: 50 }).withMessage('Position maximum length is 50 characters'),
+    body('position').optional().isLength({ max: 50 }).withMessage('Position maximum length is 50 characters'),
     body('salary').optional().isFloat({ min: 0 }).withMessage('Salary must be a positive number')
 ], employeeController.updateEmployee);
 
