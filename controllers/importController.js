@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const { success, created, error, validationError } = require('../utils/responseHelper');
 const { addBatchesToQueue, getImportProgress } = require('../services/importQueue');
 
-const BATCH_SIZE = 1;
+const BATCH_SIZE = 50;
 
 const importController = {
     uploadAndImportCSV: async (req, res) => {
